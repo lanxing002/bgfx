@@ -77,6 +77,25 @@ namespace bgfx
 	// 4.3    430      vhdgf+c
 	// 4.4    440
 	//
+	// Metal Shading Language (MSL) profile naming convention:
+	//  metal<MSL version>-<SPIR-V version>
+	//
+	// See section "Compiler Options Controlling the Language Version" from the
+	// MSL spec for the correlation between MSL version and platform OS version:
+	//	https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf
+	//
+	// MSL version | SPIR-V version | shaderc encoding
+	//    1.0      |       1.0      |      1000         (deprecated)
+	//    1.1      |       1.0      |      1110
+	//    1.2      |       1.0      |      1210
+	//    2.0      |       1.1      |      2011
+	//    2.1      |       1.1      |      2111
+	//    2.2      |       1.1      |      2211
+	//    2.3      |       1.4      |      2314
+	//    2.4      |       1.4      |      2414
+	//    3.0      |       1.4      |      3014
+	//    3.1      |       1.4      |      3114
+	//
 	// SPIR-V profile naming convention:
 	//  spirv<SPIR-V version>-<Vulkan version>
 	//
@@ -102,7 +121,17 @@ namespace bgfx
 		{  ShadingLang::ESSL,  320,    "320_es"     },
 		{  ShadingLang::HLSL,  400,    "s_4_0"      },
 		{  ShadingLang::HLSL,  500,    "s_5_0"      },
-		{  ShadingLang::Metal, 1000,   "metal"      },
+		{  ShadingLang::Metal, 1210,   "metal"      },
+		{  ShadingLang::Metal, 1000,   "metal10-10" },
+		{  ShadingLang::Metal, 1110,   "metal11-10" },
+		{  ShadingLang::Metal, 1210,   "metal12-10" },
+		{  ShadingLang::Metal, 2011,   "metal20-11" },
+		{  ShadingLang::Metal, 2111,   "metal21-11" },
+		{  ShadingLang::Metal, 2211,   "metal22-11" },
+		{  ShadingLang::Metal, 2314,   "metal23-14" },
+		{  ShadingLang::Metal, 2414,   "metal24-14" },
+		{  ShadingLang::Metal, 3014,   "metal30-14" },
+		{  ShadingLang::Metal, 3114,   "metal31-14" },
 		{  ShadingLang::PSSL,  1000,   "pssl"       },
 		{  ShadingLang::SpirV, 1010,   "spirv"      },
 		{  ShadingLang::SpirV, 1010,   "spirv10-10" },
@@ -264,10 +293,13 @@ namespace bgfx
 		NULL
 	};
 
-	static const char* s_unsignedVecs[] =
+	static const char* s_integerVecs[] =
 	{
+		"ivec2",
 		"uvec2",
+		"ivec3",
 		"uvec3",
+		"ivec4",
 		"uvec4",
 		NULL
 	};
@@ -1007,7 +1039,7 @@ namespace bgfx
 
 			  "\n"
 			  "Options:\n"
-			  "  -h, --help            	       Display this help and exit.\n"
+			  "  -h, --help                    Display this help and exit.\n"
 			  "  -v, --version                 Output version information and exit.\n"
 			  "  -f <file path>                Input's file path.\n"
 			  "  -i <include path>             Include path. (for multiple paths use -i multiple times)\n"
@@ -1131,6 +1163,7 @@ namespace bgfx
 		preprocessor.setDefaultDefine("BX_PLATFORM_ANDROID");
 		preprocessor.setDefaultDefine("BX_PLATFORM_EMSCRIPTEN");
 		preprocessor.setDefaultDefine("BX_PLATFORM_IOS");
+		preprocessor.setDefaultDefine("BX_PLATFORM_VISIONOS");
 		preprocessor.setDefaultDefine("BX_PLATFORM_LINUX");
 		preprocessor.setDefaultDefine("BX_PLATFORM_OSX");
 		preprocessor.setDefaultDefine("BX_PLATFORM_PS4");
@@ -1184,18 +1217,6 @@ namespace bgfx
 			preprocessor.setDefine("BX_PLATFORM_EMSCRIPTEN=1");
 			preprocessor.setDefine(glslDefine);
 		}
-		else if (0 == bx::strCmpI(platform, "ios") )
-		{
-			preprocessor.setDefine("BX_PLATFORM_IOS=1");
-			if (profile->lang == ShadingLang::Metal)
-			{
-				preprocessor.setDefine("BGFX_SHADER_LANGUAGE_METAL=1");
-			}
-			else
-			{
-				preprocessor.setDefine(glslDefine);
-			}
-		}
 		else if (0 == bx::strCmpI(platform, "linux") )
 		{
 			preprocessor.setDefine("BX_PLATFORM_LINUX=1");
@@ -1208,20 +1229,35 @@ namespace bgfx
 				preprocessor.setDefine(glslDefine);
 			}
 		}
-		else if (0 == bx::strCmpI(platform, "osx") )
+		else if (
+			0 == bx::strCmpI(platform, "ios") ||
+			0 == bx::strCmpI(platform, "osx") ||
+			0 == bx::strCmpI(platform, "visionos")
+		)
 		{
-			preprocessor.setDefine("BX_PLATFORM_OSX=1");
+			if (0 == bx::strCmpI(platform, "osx"))
+			{
+				preprocessor.setDefine("BX_PLATFORM_OSX=1");
+			}
+			else if (0 == bx::strCmpI(platform, "visionos")) {
+				preprocessor.setDefine("BX_PLATFORM_VISIONOS=1");
+			}
+			else
+			{
+				preprocessor.setDefine("BX_PLATFORM_IOS=1");
+			}
+
 			if (profile->lang != ShadingLang::Metal)
 			{
 				preprocessor.setDefine(glslDefine);
 			}
-			char temp[256];
+			char temp[32];
 			bx::snprintf(
-				  temp
+				temp
 				, sizeof(temp)
 				, "BGFX_SHADER_LANGUAGE_METAL=%d"
 				, (profile->lang == ShadingLang::Metal) ? profile->id : 0
-				);
+			);
 			preprocessor.setDefine(temp);
 		}
 		else if (0 == bx::strCmpI(platform, "windows") )
@@ -1517,7 +1553,7 @@ namespace bgfx
 			}
 			else if (profile->lang == ShadingLang::Metal)
 			{
-				compiled = compileMetalShader(_options, BX_MAKEFOURCC('M', 'T', 'L', 0), input, _shaderWriter, _messageWriter);
+				compiled = compileMetalShader(_options, profile->id, input, _shaderWriter, _messageWriter);
 			}
 			else if (profile->lang == ShadingLang::SpirV)
 			{
@@ -1674,7 +1710,7 @@ namespace bgfx
 
 							if (profile->lang == ShadingLang::Metal)
 							{
-								compiled = compileMetalShader(_options, BX_MAKEFOURCC('M', 'T', 'L', 0), code, _shaderWriter, _messageWriter);
+								compiled = compileMetalShader(_options, profile->id, code, _shaderWriter, _messageWriter);
 							}
 							else if (profile->lang == ShadingLang::SpirV)
 							{
@@ -2234,7 +2270,7 @@ namespace bgfx
 								const bool usesTextureArray       = !bx::findIdentifierMatch(input, s_textureArray).isEmpty();
 								const bool usesPacking            = !bx::findIdentifierMatch(input, s_ARB_shading_language_packing).isEmpty();
 								const bool usesViewportLayerArray = !bx::findIdentifierMatch(input, s_ARB_shader_viewport_layer_array).isEmpty();
-								const bool usesUnsignedVecs       = !bx::findIdentifierMatch(preprocessedInput, s_unsignedVecs).isEmpty();
+								const bool usesIntegerVecs        = !bx::findIdentifierMatch(preprocessedInput, s_integerVecs).isEmpty();
 
 								if (profile->lang != ShadingLang::ESSL)
 								{
@@ -2242,7 +2278,7 @@ namespace bgfx
 										|| !bx::findIdentifierMatch(input, s_130).isEmpty()
 										|| usesInterpolationQualifiers
 										|| usesTexelFetch
-										|| usesUnsignedVecs
+										|| usesIntegerVecs
 										) );
 
 									bx::stringPrintf(code, "#version %d\n", need130 ? 130 : glsl_profile);
@@ -2324,15 +2360,6 @@ namespace bgfx
 											);
 									}
 
-									if (130 > glsl_profile)
-									{
-										bx::stringPrintf(code,
-											"#define ivec2 vec2\n"
-											"#define ivec3 vec3\n"
-											"#define ivec4 vec4\n"
-											);
-									}
-
 									if (ARB_shader_texture_lod)
 									{
 										bx::stringPrintf(code,
@@ -2370,7 +2397,7 @@ namespace bgfx
 								else
 								{
 									if (glsl_profile < 300
-									&&  usesUnsignedVecs)
+									&&  usesIntegerVecs)
 									{
 										glsl_profile = 300;
 									}
@@ -2580,7 +2607,7 @@ namespace bgfx
 
 							if (profile->lang == ShadingLang::Metal)
 							{
-								compiled = compileMetalShader(_options, BX_MAKEFOURCC('M', 'T', 'L', 0), code, _shaderWriter, _messageWriter);
+								compiled = compileMetalShader(_options, profile->id, code, _shaderWriter, _messageWriter);
 							}
 							else if (profile->lang == ShadingLang::SpirV)
 							{
@@ -2813,7 +2840,7 @@ namespace bgfx
 				}
 			}
 
-			int32_t size = bx::getSize(&reader);
+			int32_t size = (int32_t)bx::getSize(&reader);
 			const int32_t total = size + 16384;
 			char* data = new char[total];
 			size = bx::read(&reader, data, size, bx::ErrorAssert{});

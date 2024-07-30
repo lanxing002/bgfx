@@ -579,6 +579,78 @@ Survive the onslaught.
 target="_blank"><img src="http://img.youtube.com/vi/UioR5ptCFYU/0.jpg" 
 alt="WARCANA Announcement Trailer" width="640" height="480" border="0" /></a>
 
+## DiskBoard
+
+https://www.diskboard.com - DiskBoard is the ultimate tool that can help you measure
+the performance and monitor the health of your hardware. All of your devices are
+presented in a clean and easy to understand view. The tests offer extensive
+customization options, allowing you to simulate various workloads. The intuitive
+visuals provide clear insights, benchmark comparisons, and performance guidelines.
+Join a community of tech enthusiasts, compare your device's prowess, and witness
+your hardware shine!
+
+![Diskboard screenshot](https://www.diskboard.com/assets/diskboard3.png)
+
+## Ant
+
+https://github.com/ejoy/ant - Ant is an open-source game engine focused on mobile platforms. It is implemented
+based on Lua, with excellent performance and easy customization.
+
+[Red Frontier Game using Ant Game Engine](https://github.com/ejoy/vaststars)
+
+![RedFrontier](https://github.com/ejoy/vaststars/blob/master/screenshot/startup.jpg)
+
+## Crypt of the NecroDancer
+
+https://braceyourselfgames.com/crypt-of-the-necrodancer/ - Crypt of the NecroDancer
+is an award-winning hardcore roguelike rhythm game. Move to the music and deliver
+beatdowns to the beat! The game uses bgfx on Windows, macOS, Linux, Nintendo
+Switch and PlayStation 4.
+
+![Crypt of the NecroDancer screenshot](https://raw.githubusercontent.com/Marukyu/marukyu.github.io/misc-assets/247080_20240322072858_1.png)
+
+## Tomb4Plus
+
+https://www.github.com/SaracenOne/Tomb4Plus - Tomb4Plus is an open source
+reimplementation of the Tomb Raider: The Last Revelation engine. It is an
+enhanced fork of the original [Tomb4](https://github.com/Trxyebeep/TOMB4)
+reimplementation project which focuses on supporting the Level Editor runtime
+and aims for full compatibility with the unofficial binary-patched scripting
+extensions used by many custom levels. Tomb4Plus also replaces the original
+legacy Direct3D renderer with bgfx.
+
+![Tomb4Plus screenshot](https://raw.githubusercontent.com/SaracenOne/Tomb4Plus/level_editor_v2/.github/images/preview.png)
+
+## Braid, Anniversary Edition
+
+https://play.google.com/store/apps/details?id=com.netflix.NGP.BraidAnniversaryEdition - 
+bgfx is used only in Android version of the game.
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=U738YZG1k1I" 
+target="_blank"><img src="http://img.youtube.com/vi/U738YZG1k1I/0.jpg" 
+alt="Braid, Anniversary Edition"
+width="640" height="480" border="0" /></a>
+
+## Rotwood
+
+https://store.steampowered.com/app/2015270/Rotwood/ - Rotwood is an upcoming
+beat'em up, rogouelike video game developed and published by Klei Entertainment.
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=SoTNhVPzmC8" 
+target="_blank"><img src="http://img.youtube.com/vi/SoTNhVPzmC8/0.jpg" 
+alt="Rotwood"
+width="640" height="480" border="0" /></a>
+
+## Cubzh
+
+https://app.cu.bzh/ - Cubzh is a User Generated Social Universe, an online
+platform where all items, avatars, games, and experiences are made by users
+from the community.
+
+Source: https://github.com/cubzh/cubzh
+
+![Cubzh screenshot](https://camo.githubusercontent.com/154159f42f526cc87357d24419133d99d8996ee2a16513ae5b5d31bd7e06bc5d/68747470733a2f2f6672616d657275736572636f6e74656e742e636f6d2f696d616765732f4957384c7147575239496e696b7542534a6c5a664578647631412e77656270)
+
 [License (BSD 2-clause)](https://bkaradzic.github.io/bgfx/license.html)
 -----------------------------------------------------------------------
 

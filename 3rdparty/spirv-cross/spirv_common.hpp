@@ -220,7 +220,7 @@ static inline std::string convert_to_string(int32_t value)
 	// INT_MIN is ... special on some backends. If we use a decimal literal, and negate it, we
 	// could accidentally promote the literal to long first, then negate.
 	// To workaround it, emit int(0x80000000) instead.
-	if (value == std::numeric_limits<int32_t>::min())
+	if (value == (std::numeric_limits<int32_t>::min)())
 		return "int(0x80000000)";
 	else
 		return std::to_string(value);
@@ -231,7 +231,7 @@ static inline std::string convert_to_string(int64_t value, const std::string &in
 	// INT64_MIN is ... special on some backends.
 	// If we use a decimal literal, and negate it, we might overflow the representable numbers.
 	// To workaround it, emit int(0x80000000) instead.
-	if (value == std::numeric_limits<int64_t>::min())
+	if (value == (std::numeric_limits<int64_t>::min)())
 		return join(int64_type, "(0x8000000000000000u", (long_long_literal_suffix ? "ll" : "l"), ")");
 	else
 		return std::to_string(value) + (long_long_literal_suffix ? "ll" : "l");
@@ -1121,6 +1121,9 @@ struct SPIRVariable : IVariant
 	// Set to true while we're inside the for loop.
 	bool loop_variable_enable = false;
 
+	// Used to find global LUTs
+	bool is_written_to = false;
+
 	SPIRFunction::Parameter *parameter = nullptr;
 
 	SPIRV_CROSS_DECLARE_CLONE(SPIRVariable)
@@ -1667,6 +1670,8 @@ enum ExtendedDecorations
 	// class that is convertible to the standard matrix type, to work around the
 	// lack of constructors in the 'threadgroup' address space.
 	SPIRVCrossDecorationWorkgroupStruct,
+
+	SPIRVCrossDecorationOverlappingBinding,
 
 	SPIRVCrossDecorationCount
 };
