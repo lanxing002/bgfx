@@ -7,7 +7,177 @@
 #include "common.h"
 #include "bgfx_utils.h"
 #include "logo.h"
+#include "editor_ui.h"
 #include "imgui/imgui.h"
+#include <dear-imgui/imgui_internal.h>
+
+
+class EditorUI
+{
+public:
+	EditorUI();
+
+	virtual void initialize();
+
+	virtual void render();
+
+private:
+	void showEditorMenu(bool* opended);
+	void showEditorWorldObjectsWindow(bool* opended);
+	void showEditorGameWindow(bool* opended);
+
+private:
+	bool m_editor_menu_window_open = true;
+	bool m_asset_window_open = true;
+	bool m_game_engine_window_open = true;
+	bool m_file_content_window_open = true;
+	//bool m_detail_window_open = true;
+	//bool m_scene_lights_window_open = true;
+	//bool m_scene_lights_data_window_open = true;
+};
+
+EditorUI::EditorUI()
+{
+}
+
+void EditorUI::initialize()
+{
+
+}
+
+void EditorUI::render()
+{
+	showEditorMenu(&m_editor_menu_window_open);
+	showEditorWorldObjectsWindow(&m_asset_window_open);
+	showEditorGameWindow(&m_game_engine_window_open);
+}
+
+void EditorUI::showEditorMenu(bool* opened)
+{
+	ImGuiDockNodeFlags dock_flags = ImGuiDockNodeFlags_DockSpace;
+	ImGuiWindowFlags   window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground |
+		ImGuiConfigFlags_NoMouseCursorChange | ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(main_viewport->WorkPos, ImGuiCond_Always);
+	std::array<int, 2> window_size = g_editor_global_context.m_window_system->getWindowSize();
+	ImGui::SetNextWindowSize(ImVec2((float)window_size[0], (float)window_size[1]), ImGuiCond_Always);
+
+	ImGui::SetNextWindowViewport(main_viewport->ID);
+
+	ImGui::Begin("Editor menu", p_open, window_flags);
+
+	ImGuiID main_docking_id = ImGui::GetID("Main Docking");
+	if (ImGui::DockBuilderGetNode(main_docking_id) == nullptr)
+	{
+		ImGui::DockBuilderRemoveNode(main_docking_id);
+
+		ImGui::DockBuilderAddNode(main_docking_id, dock_flags);
+		ImGui::DockBuilderSetNodePos(main_docking_id,
+			ImVec2(main_viewport->WorkPos.x, main_viewport->WorkPos.y + 18.0f));
+		ImGui::DockBuilderSetNodeSize(main_docking_id,
+			ImVec2((float)window_size[0], (float)window_size[1] - 18.0f));
+
+		ImGuiID center = main_docking_id;
+		ImGuiID left;
+		ImGuiID right = ImGui::DockBuilderSplitNode(center, ImGuiDir_Right, 0.25f, nullptr, &left);
+
+		ImGuiID left_other;
+		ImGuiID left_file_content = ImGui::DockBuilderSplitNode(left, ImGuiDir_Down, 0.30f, nullptr, &left_other);
+
+		ImGuiID left_game_engine;
+		ImGuiID left_asset =
+			ImGui::DockBuilderSplitNode(left_other, ImGuiDir_Left, 0.30f, nullptr, &left_game_engine);
+
+		ImGui::DockBuilderDockWindow("World Objects", left_asset);
+		ImGui::DockBuilderDockWindow("Components Details", right);
+		ImGui::DockBuilderDockWindow("File Content", left_file_content);
+		ImGui::DockBuilderDockWindow("Game Engine", left_game_engine);
+
+		ImGui::DockBuilderFinish(main_docking_id);
+	}
+
+	ImGui::DockSpace(main_docking_id);
+
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("Menu"))
+		{
+			if (ImGui::MenuItem("Reload Current Level"))
+			{
+				g_runtime_global_context.m_world_manager->reloadCurrentLevel();
+				g_runtime_global_context.m_render_system->clearForLevelReloading();
+				g_editor_global_context.m_scene_manager->onGObjectSelected(k_invalid_gobject_id);
+			}
+			if (ImGui::MenuItem("Save Current Level"))
+			{
+				g_runtime_global_context.m_world_manager->saveCurrentLevel();
+			}
+			if (ImGui::BeginMenu("Debug"))
+			{
+				if (ImGui::BeginMenu("Animation"))
+				{
+					if (ImGui::MenuItem(g_runtime_global_context.m_render_debug_config->animation.show_skeleton ? "off skeleton" : "show skeleton"))
+					{
+						g_runtime_global_context.m_render_debug_config->animation.show_skeleton = !g_runtime_global_context.m_render_debug_config->animation.show_skeleton;
+					}
+					if (ImGui::MenuItem(g_runtime_global_context.m_render_debug_config->animation.show_bone_name ? "off bone name" : "show bone name"))
+					{
+						g_runtime_global_context.m_render_debug_config->animation.show_bone_name = !g_runtime_global_context.m_render_debug_config->animation.show_bone_name;
+					}
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Camera"))
+				{
+					if (ImGui::MenuItem(g_runtime_global_context.m_render_debug_config->camera.show_runtime_info ? "off runtime info" : "show runtime info"))
+					{
+						g_runtime_global_context.m_render_debug_config->camera.show_runtime_info = !g_runtime_global_context.m_render_debug_config->camera.show_runtime_info;
+					}
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Game Object"))
+				{
+					if (ImGui::MenuItem(g_runtime_global_context.m_render_debug_config->gameObject.show_bounding_box ? "off bounding box" : "show bounding box"))
+					{
+						g_runtime_global_context.m_render_debug_config->gameObject.show_bounding_box = !g_runtime_global_context.m_render_debug_config->gameObject.show_bounding_box;
+					}
+					ImGui::EndMenu();
+				}
+				ImGui::EndMenu();
+			}
+			if (ImGui::MenuItem("Exit"))
+			{
+				g_editor_global_context.m_engine_runtime->shutdownEngine();
+				exit(0);
+			}
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Window"))
+		{
+			ImGui::MenuItem("World Objects", nullptr, &m_asset_window_open);
+			ImGui::MenuItem("Game", nullptr, &m_game_engine_window_open);
+			ImGui::MenuItem("File Content", nullptr, &m_file_content_window_open);
+			ImGui::MenuItem("Detail", nullptr, &m_detail_window_open);
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
+
+	ImGui::End();
+
+}
+
+void EditorUI::showEditorWorldObjectsWindow(bool* opened)
+{
+
+}
+
+void EditorUI::showEditorGameWindow(bool* opened)
+{
+
+}
 
 namespace
 {
@@ -140,3 +310,5 @@ ENTRY_IMPLEMENT_MAIN(
 	, "Initialization and debug text."
 	, "https://bkaradzic.github.io/bgfx/examples.html#helloworld"
 	);
+
+
